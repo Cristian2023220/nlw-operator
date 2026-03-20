@@ -15,11 +15,22 @@ function initApp() {
         }
     }).then(stream => {
         video.srcObject = stream;
-        video.onloadedmetadata = () => {
+        video.play().catch(e => console.error("Play error:", e));
+        
+        const onMetadata = () => {
             canvas.width = tempCanvas.width = video.videoWidth;
             canvas.height = tempCanvas.height = video.videoHeight;
             initWS();
         };
+
+        if (video.readyState >= 1) { // HAVE_METADATA is 1
+            onMetadata();
+        } else {
+            video.addEventListener('loadedmetadata', onMetadata, { once: true });
+        }
+    }).catch(err => {
+        console.error("Camera access Error:", err);
+        alert("Erro ao acessar a câmera: " + err.message + "\nPor favor, permita o acesso à câmera no seu navegador.");
     });
 
     function initWS() {

@@ -1,6 +1,6 @@
 import json
 import time
-from fasthtml.common import *
+from fasthtml.common import fast_app, serve, Title, Main, Header, H1, P, Div, Video, Canvas, H3, Input, Span, Label, Img, Script, Link
 from core.processor import GestureProcessor
 from core.utils import decode_image, encode_image
 from starlette.responses import FileResponse
@@ -35,7 +35,7 @@ def get():
         ),
         Div(
             Div(
-                Video(id="video", autoplay=True, playsinline=True, style="display:none"),
+                Video(id="video", autoplay=True, playsinline=True, muted=True, style="display:none"),
                 Canvas(id="canvas"),
                 Div("FPS: 0", id="fps-counter", cls="fps-badge"),
                 cls="vision-card"
@@ -70,13 +70,12 @@ def get():
     )
 
 @app.ws("/ws")
-async def ws(msg: str, send):
+async def ws(image: str, draw_landmarks: bool, send):
     try:
-        data = json.loads(msg)
-        img = decode_image(data.get("image", ""))
+        img = decode_image(image)
         
         if img is not None:
-            processed_img, labels, _ = processor.process_frame(img, data.get("draw_landmarks", True))
+            processed_img, labels, _ = processor.process_frame(img, draw_landmarks)
             fps = fps_tracker.update()
             
             gesture_img_name = None
